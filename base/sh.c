@@ -61,7 +61,7 @@ runcmd(struct cmd *cmd)
   //struct backcmd *bcmd;
   struct execcmd *ecmd;
   struct listcmd *lcmd;
-  //struct pipecmd *pcmd;
+  struct pipecmd *pcmd;
   //struct redircmd *rcmd;
   
   if(cmd == 0)
@@ -84,16 +84,37 @@ runcmd(struct cmd *cmd)
     break;
 
   case LIST:
-    //printf(2, "List Not Implemented\n");
-    lcmd = (struct listcmd*)cmd;
-    if (fork1() == 0)
+    lcmd = (struct listcmd*)cmd; 	// get listcmd struct (has left and right ptr to cmd
+    if (fork1() == 0)			// fork a child and run left cmd first
 	    runcmd(lcmd->left);
-    wait();
-    runcmd(lcmd->right);
+    wait();				// wait for child to finish
+    runcmd(lcmd->right);		// run right cmd 
     break;
 
+
   case PIPE:
-    printf(2, "Pipe Not implemented\n");
+    pcmd = (struct pipecmd*)cmd;
+    int fds[2];				// pipe file descriptors
+    pipe(fds);
+
+    if (fork1() == 0) {			
+	close(1);			// close stdout
+    	close(fds[0]);			// close pipe read end
+	dup(fds[1]);			// move pipe write to stdout
+	runcmd(pcmd->left);
+    }
+
+    if (fork1() == 0) {
+     	close(0);			// close stdin
+    	close(fds[1]);			// close pipe write
+    	dup(fds[0]);			// move stdin to pipe read
+    	runcmd(pcmd->right);
+    }
+
+    close(fds[0]);
+    close(fds[1]);
+    wait();
+    wait();
     break;
 
   case BACK:
