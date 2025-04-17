@@ -12,6 +12,7 @@
 #define BACK  5
 
 #define MAXARGS 10
+#define O_TRUNC 0x400
 
 struct cmd {
   int type;
@@ -62,7 +63,7 @@ runcmd(struct cmd *cmd)
   struct execcmd *ecmd;
   struct listcmd *lcmd;
   struct pipecmd *pcmd;
-  //struct redircmd *rcmd;
+  struct redircmd *rcmd;
   
   if(cmd == 0)
     exit();
@@ -80,11 +81,20 @@ runcmd(struct cmd *cmd)
     break;
 
   case REDIR:
-    printf(2, "Redirection Not Implemented\n");
+    rcmd = (struct redircmd*)cmd;
+     
+    if (fork1() == 0) {
+	close(rcmd->fd);
+	int result = rcmd->fd == 1 ? open(rcmd->file, O_CREATE|O_RDWR|O_TRUNC) : open(rcmd->file, O_RDONLY);
+	dup(result);
+	runcmd(rcmd->cmd); 
+    }
+  
+    wait();
     break;
 
   case LIST:
-    lcmd = (struct listcmd*)cmd; 	// get listcmd struct (has left and right ptr to cmd
+    lcmd = (struct listcmd*)cmd; 	// get listcmd struct (has left and right ptr to cmd)
     if (fork1() == 0)			// fork a child and run left cmd first
 	    runcmd(lcmd->left);
     wait();				// wait for child to finish
