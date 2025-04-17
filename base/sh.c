@@ -84,9 +84,9 @@ runcmd(struct cmd *cmd)
     rcmd = (struct redircmd*)cmd;
      
     if (fork1() == 0) {
-	close(rcmd->fd);
-	int result = rcmd->fd == 1 ? open(rcmd->file, O_CREATE|O_RDWR|O_TRUNC) : open(rcmd->file, O_RDONLY);
-	dup(result);
+	close(rcmd->fd);		// close stdin/out based on fd
+	int result = rcmd->fd == 1 ? open(rcmd->file, O_CREATE|O_RDWR|O_TRUNC) : open(rcmd->file, O_RDONLY); 	// fd == 1, then redirect stdout to file, else redirect stdin from file 
+	dup(result);			// move result into empty fd
 	runcmd(rcmd->cmd); 
     }
   
