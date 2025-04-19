@@ -4,6 +4,8 @@
 #include "user.h"
 #include "fcntl.h"
 
+#include "spinlock.h"
+
 // Parsed command representation
 #define EXEC  1
 #define REDIR 2
@@ -59,7 +61,7 @@ void
 runcmd(struct cmd *cmd)
 {
   //int p[2];
-  //struct backcmd *bcmd;
+  struct backcmd *bcmd;
   struct execcmd *ecmd;
   struct listcmd *lcmd;
   struct pipecmd *pcmd;
@@ -128,9 +130,13 @@ runcmd(struct cmd *cmd)
     break;
 
   case BACK:
-    printf(2, "Backgrounding not implemented\n");
-    break;
+
+    bcmd = (struct backcmd*)cmd;
+    if (fork1() == 0) {
+      runcmd(bcmd->cmd);
+    }
   }
+  
   exit();
 }
 
