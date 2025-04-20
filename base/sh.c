@@ -209,7 +209,7 @@ void print_history() {
   int start = (history_index - history_count + MAX_HISTORY) % MAX_HISTORY;
   for (int i = 0; i < history_count; i++) {
       int idx = (start + i) % MAX_HISTORY;
-      printf(1, "%d: %s", i+1, history[idx]);
+      printf(1, "Previous command %d: %s", i+1, history[idx]);
   }
 }
 
