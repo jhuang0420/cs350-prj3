@@ -13,6 +13,11 @@
 
 #define MAXARGS 10
 #define O_TRUNC 0x400
+#define MAX_HISTORY 10
+
+static char history[MAX_HISTORY][100];
+static int history_count = 0;
+static int history_index = 0;
 
 struct cmd {
   int type;
@@ -162,6 +167,60 @@ getcmd(char *buf, int nbuf)
   return 0;
 }
 
+//Because we don't have <string.h> in xv6
+int strncmp(const char *s1, const char *s2, int n) {
+  for (int i = 0; i < n; i++) {
+      if (s1[i] != s2[i])
+          return s1[i] - s2[i];
+      if (s1[i] == '\0')
+          return 0;
+  }
+  return 0;
+}
+
+char* strncpy(char *dest, const char *src, int n) {
+  int i;
+  for (i = 0; i < n && src[i] != '\0'; i++)
+      dest[i] = src[i];
+  for ( ; i < n; i++)
+      dest[i] = '\0';
+  return dest;
+}
+
+void add_to_history(char *buf) {
+  // NO empty commands or standalone 'hist' commands
+  if (buf[0] == 0 || (strcmp(buf, "hist print\n") == 0) || 
+      (strncmp(buf, "hist ", 5) == 0 && buf[5] >= '0' && buf[5] <= '9' && buf[6] == '\n')) {
+      return;
+  }
+
+  // Copy command to history
+  strncpy(history[history_index], buf, sizeof(history[history_index]) - 1);
+  history[history_index][sizeof(history[history_index]) - 1] = '\0';
+  
+  // Update indices
+  history_index = (history_index + 1) % MAX_HISTORY;
+  if (history_count < MAX_HISTORY) {
+      history_count++;
+  }
+}
+
+void print_history() {
+  int start = (history_index - history_count + MAX_HISTORY) % MAX_HISTORY;
+  for (int i = 0; i < history_count; i++) {
+      int idx = (start + i) % MAX_HISTORY;
+      printf(1, "%d: %s", i+1, history[idx]);
+  }
+}
+
+char* get_history_command(int n) {
+  if (n < 1 || n > history_count) {
+      return 0;
+  }
+  int idx = (history_index - history_count + n - 1 + MAX_HISTORY) % MAX_HISTORY;
+  return history[idx];
+}
+
 int
 main(void)
 {
@@ -178,6 +237,25 @@ main(void)
 
   // Read and run input commands.
   while(getcmd(buf, sizeof(buf)) >= 0){
+    //History
+    if(strncmp(buf, "hist ", 5) == 0) {
+      if(strcmp(buf + 5, "print\n") == 0) {
+          print_history();
+          continue;
+      } else if(buf[5] >= '0' && buf[5] <= '9') {
+          int n = atoi(buf + 5);
+          char *cmd = get_history_command(n);
+          if(cmd) {
+              strcpy(buf, cmd);
+          } else {
+              printf(2, "No such history command: %d\n", n);
+              continue;
+          }
+      }
+  } else {
+      add_to_history(buf);
+  }
+
     if(buf[0] == 'c' && buf[1] == 'd' && buf[2] == ' '){
       // Chdir must be called by the parent, not the child.
       buf[strlen(buf)-1] = 0;  // chop \n
