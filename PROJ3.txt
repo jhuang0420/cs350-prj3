@@ -1,9 +1,9 @@
 CS350 Group 3 
 
 Brendan Bulger: 
-Status: 
+Status: Completed
 Description: 
- - 
+ - Completed 3.4 implementation
 
 Samruddhi Deshpande:
 Status: 
