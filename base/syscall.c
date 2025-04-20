@@ -112,6 +112,8 @@ extern int sys_transfer_tickets(void);
 extern int sys_cps(void);
 extern int sys_chpr(void);
 
+extern int sys_ktable_access(void);
+
 static int (*syscalls[])(void) = {
 [SYS_fork]    sys_fork,
 [SYS_exit]    sys_exit,
@@ -138,6 +140,7 @@ static int (*syscalls[])(void) = {
 [SYS_cps]   sys_cps,
 [SYS_chpr]  sys_chpr,
 
+[SYS_ktable_access] sys_ktable_access,
 };
 
 void

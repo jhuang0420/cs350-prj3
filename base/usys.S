@@ -32,3 +32,5 @@ SYSCALL(uptime)
 SYSCALL(shutdown)
 SYSCALL(cps)
 SYSCALL(chpr)
+
+SYSCALL(ktable_access)

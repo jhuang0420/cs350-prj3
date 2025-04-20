@@ -7,8 +7,51 @@
 #include "mmu.h"
 #include "proc.h"
 
-xvpid_t ktable[NPROC];
+int ktable[NPROC];
+int kctable[NPROC];
 EXPORT_SYMBOL(ktable);
+
+int sys_ktable_access(void) {
+  int access_type; // 0 for write, 1 for read
+  int completion;
+  int pid;
+
+  if(argint(0, &access_type) < 0)
+    return -1;
+  if(argint(1, &completion) < 0)
+    return -1;
+  if(argint(2, &pid) < 0)
+    return -1;
+
+  if (access_type == 0) {
+    if (completion == 0) {
+      for (int i = 0; i < NPROC; i++) {
+        if (ktable[i] == 0) {
+          ktable[i] = pid;
+          kctable[i] = 0;
+          break;
+        } 
+      }
+    } else {
+      for (int i = 0; i < NPROC; i++) {
+        if (ktable[i] == pid) {
+          kctable[i] = 1;
+          break;
+        }
+      }
+    }
+  } else {
+    for (int i = 0; i < NPROC; i++) {
+      if (ktable[i] != 0 && kctable[i] == 1) {
+        int kpid = ktable[i];
+        ktable[i] = 0;
+        return kpid;
+      }
+    }
+  }
+
+  return 0;
+}
 
 int
 sys_fork(void)

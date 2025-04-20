@@ -50,6 +50,7 @@ struct backcmd {
   struct cmd *cmd;
 };
 
+
 int fork1(void);  // Fork but panics on failure.
 void panic(char*);
 struct cmd *parsecmd(char*);
@@ -139,9 +140,10 @@ runcmd(struct cmd *cmd)
         runcmd(bcmd->cmd);
       } else {
         wait();
-        // process has completed here. need to save pid of parent so it can be culled later. current implementation works but leaves a zombie process (this seems to be automatically handled by init process atm but should be handled elsewhere according to project specifications)
-        
+        ktable_access(0, 1, getpid());
       }
+    } else {
+      ktable_access(0, 0, kpid);
     }
   }
   
@@ -185,7 +187,12 @@ main(void)
     if(fork1() == 0) 
       runcmd(parsecmd(buf));
     wait();
+    int kpid = ktable_access(1, 0, 0);
+    if (kpid != 0) {
+      printf(1, "waitpid(%d);\n", kpid);
+    } 
   }
+  printf(1, "exit sh\n");
   exit();
 }
 
