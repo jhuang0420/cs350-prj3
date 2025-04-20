@@ -6,8 +6,8 @@ Description:
  - Completed 3.4 implementation
 
 Samruddhi Deshpande:
-Status: 
-Description: 
+Status: Completed
+Descirption:
  - Completed 3.5 implementation
 
 Jeffrey Huang:
