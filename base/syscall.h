@@ -25,3 +25,4 @@
 #define SYS_chpr  24
 
 #define SYS_ktable_access 25
+#define SYS_killpid 26

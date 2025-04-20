@@ -73,6 +73,13 @@ sys_wait(void)
 }
 
 int
+sys_killpid(void) {
+  int pid;
+  if (argint(0, &pid) < 0) return -1;
+  return killpid(pid);
+}
+
+int
 sys_kill(void)
 {
   int pid;

@@ -21,17 +21,6 @@ extern void trapret(void);
 
 static void wakeup1(void *chan);
 
-enum procstate get_pid_status_1(xvpid_t pid) {
-  enum procstate state;
-  acquire(&ptable.lock);
-  for (int i = 0; i < NPROC; i++) {
-    if (ptable.proc[i].pid == pid) 
-      state = ptable.proc[i].state;
-  }
-  release(&ptable.lock);
-  return state;
-}
-
 void
 pinit(void)
 {
@@ -319,6 +308,41 @@ wait(void)
 
     // Wait for children to exit.  (See wakeup1 call in proc_exit.)
     sleep(curproc, &ptable.lock);  //DOC: wait-sleep
+  }
+}
+
+int killpid (int pid) {
+  struct proc *p;
+  int havekids; int kpid;
+
+  struct proc *curproc = myproc();
+  
+  acquire(&ptable.lock);
+  for (;;) {
+    havekids = 0;
+    for (p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
+      if (p->pid != pid) continue;
+      havekids = 1;
+      kpid = p->pid;
+      kfree(p->kstack);
+      p->kstack = 0;
+      freevm(p->pgdir);
+      p->state = UNUSED;
+      p->pid = 0;
+      p->parent = 0;
+      p->name[0] = 0;
+      p->killed = 0;
+      release(&ptable.lock);
+      return kpid;
+    }
+
+    if (!havekids || curproc->killed) {
+      release(&ptable.lock);
+      return -1;
+    }
+
+    sleep(curproc, &ptable.lock);
+
   }
 }
 

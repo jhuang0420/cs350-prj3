@@ -34,3 +34,4 @@ SYSCALL(cps)
 SYSCALL(chpr)
 
 SYSCALL(ktable_access)
+SYSCALL(killpid)

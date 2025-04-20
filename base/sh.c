@@ -141,6 +141,7 @@ runcmd(struct cmd *cmd)
       } else {
         wait();
         ktable_access(0, 1, getpid());
+        for (;;) {}
       }
     } else {
       ktable_access(0, 0, kpid);
@@ -189,7 +190,7 @@ main(void)
     wait();
     int kpid = ktable_access(1, 0, 0);
     if (kpid != 0) {
-      printf(1, "waitpid(%d);\n", kpid);
+      killpid(kpid);
     } 
   }
   printf(1, "exit sh\n");
