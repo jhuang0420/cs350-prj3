@@ -7,6 +7,9 @@
 #include "mmu.h"
 #include "proc.h"
 
+xvpid_t ktable[NPROC];
+EXPORT_SYMBOL(ktable);
+
 int
 sys_fork(void)
 {

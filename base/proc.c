@@ -21,6 +21,16 @@ extern void trapret(void);
 
 static void wakeup1(void *chan);
 
+enum procstate get_pid_status_1(xvpid_t pid) {
+  enum procstate state;
+  acquire(&ptable.lock);
+  for (int i = 0; i < NPROC; i++) {
+    if (ptable.proc[i].pid == pid) 
+      state = ptable.proc[i].state;
+  }
+  release(&ptable.lock);
+  return state;
+}
 
 void
 pinit(void)

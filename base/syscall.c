@@ -137,6 +137,7 @@ static int (*syscalls[])(void) = {
 [SYS_shutdown]      sys_shutdown,
 [SYS_cps]   sys_cps,
 [SYS_chpr]  sys_chpr,
+
 };
 
 void

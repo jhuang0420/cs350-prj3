@@ -4,8 +4,6 @@
 #include "user.h"
 #include "fcntl.h"
 
-#include "spinlock.h"
-
 // Parsed command representation
 #define EXEC  1
 #define REDIR 2
@@ -66,7 +64,8 @@ runcmd(struct cmd *cmd)
   struct listcmd *lcmd;
   struct pipecmd *pcmd;
   struct redircmd *rcmd;
-  
+
+
   if(cmd == 0)
     exit();
 
@@ -132,8 +131,17 @@ runcmd(struct cmd *cmd)
   case BACK:
 
     bcmd = (struct backcmd*)cmd;
-    if (fork1() == 0) {
-      runcmd(bcmd->cmd);
+
+    xvpid_t kpid = fork1();
+    if (kpid == 0) {
+      xvpid_t pid = fork1();
+      if (pid == 0) {
+        runcmd(bcmd->cmd);
+      } else {
+        wait();
+        // process has completed here. need to save pid of parent so it can be culled later. current implementation works but leaves a zombie process (this seems to be automatically handled by init process atm but should be handled elsewhere according to project specifications)
+        
+      }
     }
   }
   
@@ -174,7 +182,7 @@ main(void)
         printf(2, "cannot cd %s\n", buf+3);
       continue;
     }
-    if(fork1() == 0)
+    if(fork1() == 0) 
       runcmd(parsecmd(buf));
     wait();
   }
